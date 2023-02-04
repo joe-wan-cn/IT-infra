@@ -50,6 +50,9 @@ SCRIPT
 Vagrant.configure("2") do | config |
   config.vm.box = "centos-8"
 
+  #Setup the vagrant name for this box
+  config.vm.define "V-CentOS-8"
+  
   #Size for th vm box
   #config.vm.disksize.size = '30GB' 
 
