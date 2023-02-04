@@ -6,6 +6,10 @@
 - install the vagrant-disksize otherthan the default size couldnt' be change and fix to 10GB.
 vagrant plugin install vagrant-disksize
 
+- add the vagrant rhel8 box by manual first
+vagrant box add centos-8 https://mirrors.ustc.edu.cn/centos-cloud/centos/8-stream/x86_64/images/CentOS-Stream-Vagrant-8-20220913.0.x86_64.vagrant-virtualbox.box
+
+
 - Note please, if you aren't based in China, do comment the fragrament for the optional 1
 
 
@@ -16,7 +20,6 @@ vagrant plugin install vagrant-disksize
 # vi: set ft=ruby :
 
 #https://mirrors.tuna.tsinghua.edu.cn/help/centos/ 
-#vagrant box add centos-8 https://mirrors.ustc.edu.cn/centos-cloud/centos/8-stream/x86_64/images/CentOS-Stream-Vagrant-8-20220913.0.x86_64.vagrant-virtualbox.box
 
 # Vagrant Boxes Source Definition
 
