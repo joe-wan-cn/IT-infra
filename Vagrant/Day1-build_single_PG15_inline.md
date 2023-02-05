@@ -38,7 +38,7 @@ https://developer.hashicorp.com/vagrant/docs/provisioning/shell
  $script = <<-SCRIPT
   # Put the commands inside here
   
-  
+  ############################## 1.Pure Operational System for those who based in China ############################# 
   #update the timezone 
   #timedatectl set-timezone Asia/Shanghai	
   cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
@@ -51,21 +51,38 @@ https://developer.hashicorp.com/vagrant/docs/provisioning/shell
  
   # update the passwd for root
   echo redhat | passwd root --stdin
-  
+  ############################## 2. Build the PG 15 with special data folder  #######################################
   # dnf upgrade
   # Install the repository RPM:
-sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+  dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
 
 # Disable the built-in PostgreSQL module:
-sudo dnf -qy module disable postgresql
+  dnf -qy module disable postgresql
+
+# sleep 10 to aviod the duplicate settings 
+  sleep 10
 
 # Install PostgreSQL:
-sudo dnf install -y postgresql15-server
+  dnf install -y postgresql15-server
 
-# Optionally initialize the database and enable automatic start:
-sudo /usr/pgsql-15/bin/postgresql-15-setup initdb
-sudo systemctl enable postgresql-15
-sudo systemctl start postgresql-15
+# Place the data into special folder but not the default one 
+mkdir -p /pgsql/15/{data,dump,dba,backup}
+chown -R postgres:postgres /pgsql
+chmod -R 700 /pgsql 
+echo "export PATH=/usr/pgsql-15/bin:$PATH">> /etc/profile
+ 
+echo "export PGHOME=/pgsql/15" >> /var/lib/pgsql/.bash_profile
+echo "export PGDATA=/pgsql/15/data " >> /var/lib/pgsql/.bash_profile
+echo "export PGDUMP=/pgsql/15/dump  " >> /var/lib/pgsql/.bash_profile
+echo "export PGBACKUP=/pgsql/15/backup " >> /var/lib/pgsql/.bash_profile
+
+sed -e 's|Environment=PGDATA=/var/lib/pgsql/15/data/|Environment=PGDATA=/pgsql/15/data/|g' -i.bak /usr/lib/systemd/system/postgresql-15.service
+
+# initialize the database and enable automatic start:
+/usr/pgsql-15/bin/postgresql-15-setup initdb
+systemctl enable postgresql-15
+systemctl start postgresql-15
+systemctl status postgresql-15
 
 
 SCRIPT
