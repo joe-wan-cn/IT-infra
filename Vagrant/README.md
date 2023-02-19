@@ -1,7 +1,8 @@
 
-
-若vagrant使用的操作系统版本是8或者9，建议 virtualbox版本使用最新的7
-若vagrant使用的操作系统版本是6或者7，建议 virtualbox版本使用最新的6.1
+#### 温馨提示
+> 若vagrant使用的操作系统版本是8或者9，建议 virtualbox版本使用最新的7
+> 若vagrant使用的操作系统版本是6或者7，建议 virtualbox版本使用最新的6.1
+> 否则controller name无法找到是家常便菜且无法解决
 
 
 already tested all codes with 
