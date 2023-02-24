@@ -66,7 +66,6 @@ bash /vagrant/scripts/01_create_filesystem.sh 1 virtualbox ${DB_NAME}
 # Install PostgreSQL software:
 dnf install -y postgresql${PG_VERSION}-server
 
-# postgres:x:26:26:PostgreSQL Server:/var/lib/pgsql:/bin/bash <__________ 这里需要再调整哈
 
 PG_DEFAULT_OWNER=`id postgres`
 
