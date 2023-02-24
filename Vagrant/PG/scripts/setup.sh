@@ -71,8 +71,13 @@ dnf install -y postgresql${PG_VERSION}-server
 PG_DEFAULT_OWNER=`id postgres`
 
 if [ $? = "0" ];then 
-   userdel -fr ${PG_DEFAULT_OWNER}
-   useradd -g postgres ${PG_OWNER}
+   userdel -fr ${PG_OWNER} 2> /dev/null
+   groupadd postgres  2> /dev/null
+   useradd -g postgres ${PG_OWNER} 2> /dev/null
+
+else 
+   groupadd postgres 2> /dev/null
+   useradd -g postgres ${PG_OWNER}   2> /dev/null
 fi
 
 
