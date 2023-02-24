@@ -1,0 +1,100 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+require 'yaml'
+
+params = YAML.load_file 'config/vagrant.yaml'
+var_box                   = params['env']['box'] 
+var_box_url               = params['env']['box_url']
+var_non_rotational        = params['env']['non_rotational']
+var_pg_disk_1             = params['env']['pg_disk_1']
+var_vagrant_name          = params['node1']['vagrant_name']
+var_host_name             = params['node1']['host_name']
+var_host_mem_size         = params['node1']['host_mem_size']
+var_host_cpus             = params['node1']['host_cpus']
+var_host_public_ip        = params['node1']['host_public_ip']
+var_prefix_name           = params['shared']['prefix_name']
+var_db_name               = params['db']['instance_name']
+var_db_owner              = params['db']['pg_db_owner']
+var_pg_version            = params['db']['pg_version']
+var_group                 = "/" + var_prefix_name
+
+if var_host_mem_size.to_i < 2048
+  puts 'ERROR: mem_size option can not be less then 2 Gb'
+  exit
+end
+
+class String
+  def is_ip?
+    !!IPAddr.new(self) rescue false
+  end
+end
+
+if ! var_host_public_ip.is_ip?
+  puts 'ERROR: public_ip for vm_name is not a valid IP address'
+  exit
+end
+
+# Install required Vagrant plugin
+unless Vagrant.has_plugin?("vagrant-reload")
+  puts 'Installing vagrant-reload Plugin...'
+  system('vagrant plugin install vagrant-reload')
+end
+unless Vagrant.has_plugin?("vagrant-proxyconf")
+  puts 'Installing vagrant-proxyconf Plugin...'
+  system('vagrant plugin install vagrant-proxyconf')
+end
+
+# Get host time zone for setting VM time zone
+offset_sec = Time.now.gmt_offset
+if (offset_sec % (60 * 60)) == 0
+  offset_hr = ((offset_sec / 60) / 60)
+  timezone_suffix = offset_hr >= 0 ? "-#{offset_hr.to_s}" : "+#{(-offset_hr).to_s}"
+  var_system_timezone = 'Etc/GMT' + timezone_suffix
+else
+  # if host time zone isn't an integer hour offset, fall back to UTC
+  var_system_timezone = 'UTC'
+end
+
+
+Vagrant.configure("2") do |config|
+  config.vm.box = var_box
+  config.vm.box_check_update = false
+  config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "public_network", ip: var_host_public_ip
+  config.vm.synced_folder "config", "/vagrant_config"
+  config.ssh.forward_x11 = true
+  #config.vm.hostname = var_host_name
+
+  config.vm.define :node do |node|
+    node.vm.hostname = var_host_name
+    node.vm.provider :virtualbox do |vb|
+      vb.name   = var_prefix_name + "-" + var_host_name
+      vb.memory = var_host_mem_size
+      vb.cpus   = var_host_cpus
+      vb.customize ["modifyvm", :id, "--groups", var_group] unless var_group.nil?
+      vb.memory = var_host_mem_size
+  
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', '0', '--nonrotational', var_non_rotational]
+          
+      unless File.exist?(var_pg_disk_1)
+        vb.customize ['createhd', '--filename', var_pg_disk_1, '--size', 25 * 1024]
+      end
+      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', var_pg_disk_1, '--nonrotational', var_non_rotational]
+    end
+end
+
+      config.vm.provision "shell", inline: <<-SHELL
+        sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+        /bin/systemctl restart sshd
+      SHELL
+
+      config.vm.provision "shell", path: "scripts/setup.sh", env: {
+           "DB_NAME"                     => var_db_name,
+           "HOST1_NAME"                  => var_host_name,
+           "PG_OWNER"                    => var_db_owner,
+           "PG_VERSION"                  => var_pg_version
+      }
+   
+
+
+end
