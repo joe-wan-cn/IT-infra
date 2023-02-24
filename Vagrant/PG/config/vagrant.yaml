@@ -1,0 +1,24 @@
+---
+env:
+  box: oraclebase/oracle-8
+  box_url: 
+  non_rotational: 'on'
+  pg_disk_1: pg_disk_1.vdi
+  pg_disk_2: pg_disk_2.vdi
+  pg_disk_3: pg_disk_3.vdi
+  pg_disk_4: pg_disk_4.vdi
+  
+db: 
+  instance_name: UATPG152023
+  pg_db_owner: postgres
+  pg_version: 15
+
+node1:
+  host_name: PG15ORL8PRD
+  host_mem_size: 2048
+  host_cpus: 2
+  host_public_ip: 192.168.56.56
+
+
+shared:
+  prefix_name:  PGLINUX8
